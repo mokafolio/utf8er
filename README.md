@@ -9,6 +9,29 @@ Overview
 Decoding
 --------
 
+To decode a single utf8 encoded codepoint, use the `decode` or `decode_safe` function, i.e.:
+
+```
+std::string str = u8"你好世界"
+utf8::uint32_t cp = utf8::decode(str.begin());
+//cp now holds the unicode value for the first chinese character.
+```
+
+To decode a utf8 encoded range of unicode codepoints, use the `decode_range` or `decode_range_save` functions, i.e.:
+```
+std::string str = u8"你好世界"
+std::vector<utf8::uint32_t> output;
+utf8::error_report err;
+utf8::uint32_t cp = utf8::decode_range_safe(str.begin(), str.end(), err);
+if(err)
+{
+	printf("Invalid utf8: %s\n", err.message());
+	//...exit, throw an exception, whatever suits you :)
+}
+
+//do something with the unicode codepoints stored in output
+```
+
 
 Encoding
 --------

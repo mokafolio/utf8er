@@ -37,7 +37,21 @@ if(err)
 Encoding
 --------
 
-To utf8 encode a single unicode codepoint, use the `encode` or `encode_safe` function. Both of those functions append the resulting byte sequences to the provided output iterator.
+To utf8 encode a single unicode codepoint, use the `encode` or `encode_safe` function. Both of those functions append the resulting byte sequences to the provided output iterator:
+
+```
+std::string output;
+utf8::encode(0x00D1, std::back_inserter(output)); // Ñ codepoint
+```
+
+To encode a range of codepoints, use `encode_range` or `encode_range_safe`:
+
+```
+std::vector<utf8::uint32_t> cps = { 0x0041, 0x0031, 0x00E4, 0x00D1, 0x1D122, 0x29D98 };
+std::string output;
+utf8::encode_range(cps.begin(), cps.end(), std::back_inserter(output));
+printf("The resulting utf8 string is %s\n", output.c_str());
+```
 
 For convenience, *utf8er* provides `append` and `append_safe` functions that append the encoded byte sequence to the provided string, i.e.:
 

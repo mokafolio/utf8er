@@ -34,9 +34,23 @@ if(err)
 //do something with the unicode codepoints stored in output
 ```
 
-
 Encoding
 --------
+
+To utf8 encode a single unicode codepoint, use the `encode` or `encode_safe` function. Both of those functions append the resulting byte sequences to the provided output iterator.
+
+For convenience, *utf8er* provides `append` and `append_safe` functions that append the encoded byte sequence to the provided string, i.e.:
+
+```
+std::string output;
+utf8::append(0x00D1, output); // Ñ codepoint
+printf("The utf8 encoded string is %s\n", output.c_str());
+```
+
+Similarly to the `encode` functions, all the `append` functions exist in ranged variants, too (i.e. `append_range` and `append_range_safe`).
+
+By default the type of the string/container passed to all the `append` flavors can be any type that works with `std::back_inserter`. If your type does not conform to the standard, you can create a `output_iterator_picker` template spezialization to create an output iterator that works for you.
+
 
 
 Error Handling

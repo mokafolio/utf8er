@@ -22,7 +22,9 @@ To decode a utf8 encoded range of unicode codepoints, use the `decode_range` or 
 std::string str = u8"你好世界"
 std::vector<utf8::uint32_t> output;
 utf8::error_report err;
-utf8::uint32_t cp = utf8::decode_range_safe(str.begin(), str.end(), err);
+// decode_range* expects an output iterator to write the resulting codepoints to.
+// In this case we simply use a back_inserter to append to an std::vector.
+utf8::decode_range_safe(str.begin(), str.end(), std::back_inserter(output), err); 
 if(err)
 {
 	printf("Invalid utf8: %s\n", err.message());

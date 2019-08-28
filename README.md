@@ -66,11 +66,62 @@ Similarly to the `encode` functions, all the `append` functions exist in ranged 
 By default the type of the string/container passed to all the `append` flavors can be any type that works with `std::back_inserter`. If your type does not conform to the standard, you can create a `output_iterator_picker` template spezialization to create an output iterator that works for you.
 
 
+Iterating
+--------
+
+To iterate over each codepoint of a utf8 encoded string, use `next` or `next_safe`:
+
+```
+std::string str = "A1äÑ𝄢𩶘";
+for (auto it = str.begin(); it != str.end(); it = utf8::next(it))
+{
+	//do something with the iterator
+}
+```
+
+If you want to iterate over a sequence and decode every codepoint, use `decode_and_next` and `decode_and_next_safe` to decode the current iterator and advance to the next one in one go which is faster, i.e.:
+
+```
+utf8::uint32_t cp;
+utf8::error_report err;
+auto it = str.begin();
+while (it != str.end())
+{
+	// here we decode the current codepoint and advance to the next one in one go.
+    it = utf8::decode_and_next_safe(it, str.end(), cp, err);
+    if(err)
+    {
+    	printf("An error occured at position %lu: %s\n", std::distance(str.begin(), it), err.message());
+    	break;
+    }
+
+    //... do something with the decoded codepoint
+}
+```
+
+To iterate the other way, use the `previous`, `previous_safe`, `decode_and_previous` and `decode_and_previous_safe` functions.
+
+Why does *utf8er* not provide a an iterator class?
+
+- Because it would most likely promote using the library in a way that is slow (i.e. see the iterating and decoding fast sample above).
+- Because error handling would be weird without exceptions.
+- Because it would introduce a lot of boilerplate code without adding any functionality.
+- If you really need an iterator (i.e. because you need to use iterator based `<algorithm>`'s), it gives you everything to easily build one yourself.
+
+
+Validating
+--------
+
+
+
 
 Error Handling
 --------
 
 *utf8er* uses error codes for error handling and will never throw an exception itself. (That is, if you compile it with exceptions enabled, and one of your provided string or iterator classes throws exceptions in certain cases, it might still thow).
 
-All functions that validate unicode or utf8 encoded codepoints exist in two flavors, the regular, non validating form and its counterpart that is post-fixed with `_safe` and performs error checking (i.e. `decode` and `decode_safe`). Errors are transmitted using the `error_report` structure and are commonly passed in as the last argument to a function.
+All functions that validate unicode or utf8 encoded codepoints exist in two flavors, the regular, non validating form and its counterpart that is post-fixed with `_safe` and performs error checking (i.e. `decode` and `decode_safe`). Errors are transmitted using the `error_report` structure and are commonly passed in as the last argument to a function
 
+
+Alternatives
+--------

@@ -3,8 +3,8 @@
 #define JC_TEST_IMPLEMENTATION
 #include "jc_test.h"
 
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace utf8 = utf8er;
 
@@ -173,7 +173,34 @@ TEST(utf8er, next)
     idx = 0;
     while (it != str.end())
     {
-        it = utf8::next(it, cp);
+        it = utf8::decode_and_next(it, cp);
+        auto e = expected[idx++];
+        ASSERT_EQ(e, cp);
+    }
+}
+
+TEST(utf8er, previous)
+{
+    std::string str("𩶘𝄢Ñä1A");
+    utf8::error_report err;
+    uint32_t cp;
+    uint32_t idx = 0;
+    uint32_t expected[] = { 0x0041, 0x0031, 0x00E4, 0x00D1, 0x1D122, 0x29D98 };
+    for (auto it = str.begin() + str.length() - 1; it >= str.begin(); it = utf8::previous(it))
+    {
+        printf("str %s\n", it);
+        auto e = expected[idx++];
+        ASSERT_EQ(e, utf8::decode(it));
+        cp = utf8::decode_safe(it, str.end(), err);
+        ASSERT_EQ(e, cp);
+        ASSERT_FALSE(err);
+    }
+
+    auto it = str.end() - 1;
+    idx = 0;
+    while (it >= str.begin())
+    {
+        it = utf8::decode_and_previous(it, cp);
         auto e = expected[idx++];
         ASSERT_EQ(e, cp);
     }
@@ -248,53 +275,3 @@ int main(int argc, char * argv[])
     jc_test_init(&argc, argv);
     return jc_test_run_all();
 }
-
-// UTEST(utf8er, basic_tests)
-// {
-//     const char * str = "I am ascii!";
-//     const char * str2 = "A1äÑÝ€îꜳ𝄢ů";
-
-//     ASSERT_FALSE(utf8::validate(str, str + std::strlen(str)));
-//     ASSERT_FALSE(utf8::validate(str2, str2 + std::strlen(str2)));
-//     ASSERT_EQ(utf8::count(str, str + std::strlen(str)), 11);
-//     ASSERT_EQ(utf8::count(str2, str2 + std::strlen(str2)), 10);
-//     ASSERT_EQ(utf8::decode("A"), 0x0041);
-//     ASSERT_EQ(utf8::decode("1"), 0x0031);
-//     ASSERT_EQ(utf8::decode("ä"), 0x00E4);
-//     ASSERT_EQ(utf8::decode("Ñ"), 0x00D1);
-//     ASSERT_EQ(utf8::decode("Ý"), 0x00DD);
-//     ASSERT_EQ(utf8::decode("€"), 0x20AC);
-//     ASSERT_EQ(utf8::decode("î"), 0x00EE);
-//     ASSERT_EQ(utf8::decode("ꜳ"), 0xA733);
-//     ASSERT_EQ(utf8::decode("𝄢"), 0x1D122);
-//     ASSERT_EQ(utf8::decode("ů"), 0x016F);
-
-//     // ASSERT_EQ(countUTF8(str), 11);
-//     // ASSERT_EQ(countUTF8(str2), 10);
-
-//     // ASSERT_EQ(decodeUTF8("A"), 0x0041);
-//     // ASSERT_EQ(decodeUTF8("1"), 0x0031);
-//     // ASSERT_EQ(decodeUTF8("ä"), 0x00E4);
-//     // ASSERT_EQ(decodeUTF8("Ñ"), 0x00D1);
-//     // ASSERT_EQ(decodeUTF8("Ý"), 0x00DD);
-//     // ASSERT_EQ(decodeUTF8("€"), 0x20AC);
-//     // ASSERT_EQ(decodeUTF8("î"), 0x00EE);
-//     // ASSERT_EQ(decodeUTF8("ꜳ"), 0xA733);
-//     // ASSERT_EQ(decodeUTF8("𝄢"), 0x1D122);
-//     // ASSERT_EQ(decodeUTF8("ů"), 0x016F);
-// }
-
-// UTEST(utf8er, encode)
-// {
-//     std::string str;
-//     utf8::encode(0x0041, str);
-//     ASSERT_STREQ(str.c_str(), "A");
-//     utf8::encode(0x0031, str);
-//     ASSERT_STREQ(str.c_str(), "A1");
-//     utf8::encode(0x00E4, str);
-//     ASSERT_STREQ(str.c_str(), "A1ä");
-//     utf8::encode(0x00D1, str);
-//     ASSERT_STREQ(str.c_str(), "A1äÑ");
-// }
-
-// UTEST_MAIN();

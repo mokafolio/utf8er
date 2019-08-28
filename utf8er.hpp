@@ -1,11 +1,13 @@
+// license at the bottom
+
 #ifndef UTF8ER_UTF8ER_HPP
 #define UTF8ER_UTF8ER_HPP
 
 #include <cassert>
 #include <cstdint>
 #include <cstring>
-#include <utility> //for pair
 #include <iterator> //for std::back_insert_iterator
+#include <utility>  //for pair
 
 // helper macro to make things a little more compact.
 #define UTF8ER_RETURN_ON_ERR(_exp)                                                                 \
@@ -136,10 +138,33 @@ OIT decode_c_str(const char * _c_str, OIT _output_it);
 template <class OIT>
 OIT decode_c_str_safe(const char * _c_str, OIT _output_it, error_report & _out_error);
 
+// Decodes the current codepoint at _it into _out_codepoint and advances to the next utf8
+// codepoint and returns the corresponding iterator. _it has to be at the start of a utf8 byte
+// sequence.
+template <class IT>
+IT decode_and_next(IT _it, uint32_t & _out_codepoint);
+
+// Decodes the current codepoint at _it into _out_codepoint and advances to the next utf8
+// codepoint and returns the corresponding iterator. _it has to be at tthe start of a utf8 byte
+// sequence. Error checking is performed and the results are store in _out_error.
+template <class IT>
+IT decode_and_next_safe(IT _it, IT _end, uint32_t & _out_codepoint, error_report & _out_error);
+
 template <class IT, class T>
 typename output_iterator_picker<T>::output_iter decode_range_and_append(IT _begin,
                                                                         IT _end,
                                                                         T & _append_container);
+
+// Returns the iterator to the start of the previous utf8 encoded codepoint of _it. Decodes the
+// codepoint at _it and stores it in _out_codepoint.
+template <class IT>
+IT decode_and_previous(IT _it, uint32_t & _out_codepoint);
+
+// Returns the iterator to the start of the previous utf8 encoded codepoint of _it. Decodes the
+// codepoint at _it and stores it in _out_codepoint. Performs error checking and stores the
+// results in _out_error.
+template <class IT>
+IT decode_and_previous_safe(IT _it, uint32_t & _out_codepoint, error_report & _out_error);
 
 // encodes the provided unicode _codepoint and appends it to _output_it (output iterator).
 template <class IT>
@@ -172,32 +197,10 @@ std::pair<error_report, IT> validate(IT _begin, IT _end);
 template <class IT>
 IT next(IT _it);
 
-// Decodes the current codepoint at _it into _out_codepoint and advances to the next utf8
-// codepoint and returns the corresponding iterator. _it has to be at the start of a utf8 byte
-// sequence.
-template <class IT>
-IT next(IT _it, uint32_t & _out_codepoint);
-
-// Decodes the current codepoint at _it into _out_codepoint and advances to the next utf8
-// codepoint and returns the corresponding iterator. _it has to be at tthe start of a utf8 byte
-// sequence. Error checking is performed and the results are store in _out_error.
-template <class IT>
-IT next_safe(IT _it, IT _end, uint32_t & _out_codepoint, error_report & _out_error);
-
 // Returns the iterator to the start of the previous utf8 encoded codepoint of _it.
 template <class IT>
 IT previous(IT _it);
 
-// Returns the iterator to the start of the previous utf8 encoded codepoint of _it. Decodes the
-// codepoint at _it and stores it in _out_codepoint.
-template <class IT>
-IT previous(IT _it, uint32_t & _out_codepoint);
-
-// Returns the iterator to the start of the previous utf8 encoded codepoint of _it. Decodes the
-// codepoint at _it and stores it in _out_codepoint. Performs error checking and stores the
-// results in _out_error.
-template <class IT>
-IT previous_safe(IT _it, uint32_t & _out_codepoint, error_report & _out_error);
 
 // Implementation follows below:
 // ============================================================================================
@@ -518,7 +521,7 @@ OIT decode_range(IT _begin, IT _end, OIT _output_it)
     uint32_t cp;
     while (_begin != _end)
     {
-        _begin = _me::next(_begin, cp);
+        _begin = _me::decode_and_next(_begin, cp);
         *(_output_it++) = cp;
     }
     return _output_it;
@@ -530,7 +533,7 @@ OIT decode_range_safe(IT _begin, IT _end, OIT _output_it, error_report & _out_er
     uint32_t cp;
     while (_begin != _end)
     {
-        _begin = _me::next_safe(_begin, _end, cp, _out_error);
+        _begin = _me::decode_and_next_safe(_begin, _end, cp, _out_error);
         if (_out_error)
             return _output_it;
         *(_output_it++) = cp;
@@ -573,7 +576,7 @@ IT next(IT _it)
 }
 
 template <class IT>
-IT next(IT _it, uint32_t & _out_codepoint)
+IT decode_and_next(IT _it, uint32_t & _out_codepoint)
 {
     uint8_t bc;
     _out_codepoint = _me::decode(_it, &bc);
@@ -581,7 +584,7 @@ IT next(IT _it, uint32_t & _out_codepoint)
 }
 
 template <class IT>
-IT next_safe(IT _it, IT _end, uint32_t & _out_codepoint, error_report & _out_error)
+IT decode_and_next_safe(IT _it, IT _end, uint32_t & _out_codepoint, error_report & _out_error)
 {
     uint8_t bc;
     _out_codepoint = _me::decode_safe(_it, _end, _out_error, &bc);
@@ -592,19 +595,21 @@ template <class IT>
 IT previous(IT _it)
 {
     while (detail::_is_valid_trailing_byte(*(--_it)))
-        return _it;
+        ;
+    return _it;
 }
 
 template <class IT>
-IT previous(IT _it, uint32_t & _out_codepoint)
+IT decode_and_previous(IT _it, uint32_t & _out_codepoint)
 {
     _out_codepoint = decode(_it);
     while (detail::_is_valid_trailing_byte(*(--_it)))
-        return _it;
+        ;
+    return _it;
 }
 
 template <class IT>
-IT previous_safe(IT _it, uint32_t & _out_codepoint, error_report & _out_error)
+IT decode_and_previous_safe(IT _it, uint32_t & _out_codepoint, error_report & _out_error)
 {
     _out_codepoint = decode_safe(_it, _out_error);
     while (detail::_is_valid_trailing_byte(*(--_it)))

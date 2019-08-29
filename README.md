@@ -139,5 +139,10 @@ All functions that validate unicode or utf8 encoded codepoints exist in two flav
 Alternatives
 --------
 
-- [utf8.h](https://github.com/sheredom/utf8.h): if you are stuck with C.
+- [utf8.h](https://github.com/sheredom/utf8.h): if you are looking for a single header C library.
 - [utf8cpp](https://github.com/nemtrif/utfcpp): full featured c++ header only library that does a lot more than utf8er (i.e. utf16 conversion)
+
+License
+--------
+
+[Public Domain](https://unlicense.org/)

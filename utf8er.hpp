@@ -192,6 +192,8 @@ inline bool is_ascii(uint8_t _starting_byte);
 template <class IT>
 std::pair<error_report, IT> validate(IT _begin, IT _end);
 
+inline std::pair<error_report, const char*> validate_c_str(const char * _str);
+
 // advances the provided byte iterator _it to the next utf8 codepoint and returns the
 // corresponding iterator. _it has to be at the start of a utf8 byte sequence.
 template <class IT>
@@ -567,6 +569,11 @@ std::pair<error_report, IT> validate(IT _begin, IT _end)
     }
 
     return std::make_pair(error_report(), IT());
+}
+
+inline std::pair<error_report, const char*> validate_c_str(const char * _str)
+{
+    return validate(_str, _str + std::strlen(_str));
 }
 
 template <class IT>

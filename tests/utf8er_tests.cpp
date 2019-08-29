@@ -188,7 +188,6 @@ TEST(utf8er, previous)
     uint32_t expected[] = { 0x0041, 0x0031, 0x00E4, 0x00D1, 0x1D122, 0x29D98 };
     for (auto it = str.begin() + str.length() - 1; it >= str.begin(); it = utf8::previous(it))
     {
-        printf("str %s\n", it);
         auto e = expected[idx++];
         ASSERT_EQ(e, utf8::decode(it));
         cp = utf8::decode_safe(it, str.end(), err);

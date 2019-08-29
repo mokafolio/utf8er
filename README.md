@@ -4,7 +4,7 @@ utf8er (v0.0.1)
 Overview
 --------
 
-*utf8er* is a lightweight single header c++ library to deal with utf8 encoded strings. It focusses on encoding, decoding and iteration.
+*utf8er* is a lightweight single header c++ library to deal with utf8 encoded strings. It focusses on encoding, decoding and iterating utf8 strings.
 
 Decoding
 --------
@@ -65,11 +65,10 @@ Similarly to the `encode` functions, all the `append` functions exist in ranged 
 
 By default the type of the string/container passed to all the `append` flavors can be any type that works with `std::back_inserter`. If your type does not conform to the standard, you can create a `output_iterator_picker` template spezialization to create an output iterator that works for you.
 
-
 Iterating
 --------
 
-To iterate over each codepoint of a utf8 encoded string, use `next` or `next_safe`:
+To iterate over each codepoint of a utf8 encoded string, use `next`:
 
 ```
 std::string str = "A1äÑ𝄢𩶘";
@@ -99,29 +98,46 @@ while (it != str.end())
 }
 ```
 
-To iterate the other way, use the `previous`, `previous_safe`, `decode_and_previous` and `decode_and_previous_safe` functions.
+To iterate the other way, use the `previous`, `decode_and_previous` and `decode_and_previous_safe` functions.
 
 Why does *utf8er* not provide a an iterator class?
 
 - Because it would most likely promote using the library in a way that is slow (i.e. see the iterating and decoding fast sample above).
 - Because error handling would be weird without exceptions.
 - Because it would introduce a lot of boilerplate code without adding any functionality.
-- If you really need an iterator (i.e. because you need to use iterator based `<algorithm>`'s), it gives you everything to easily build one yourself.
-
+- If you really need an iterator (i.e. because you need to use iterator based `<algorithm>`'s), it gives you everything to easily build a fitting iterator class yourself.
 
 Validating
 --------
 
+If you want to validate a whole utf8 string, you can use the `validate` or `validate_c_str` function. Here is an example:
 
+```
+std::string str = "யாமறிந்த";
+auto result_pair = utf8::validate(str.begin(), str.end());
+// the first item in the result pair is an error_report
+// the second item is the iterator at which the error occured.
+if(result_pair.first)
+{
+	printf("The utf8 string is invalid: %s. The error position is %i\n", result_pair.first.message(), std::distance(str.begin(), result_pair.second));
+	//...exit, throw exception, whatever makes sense.
+}
+//...
+```
 
+As a word of warning: The functions that are not postfixed with safe can potentially yield undefined behavior for broken utf8 strings (i.e. if you try to `decode` a utf8 codepoint that uses four bytes but the provided iterator ends earlier).
+
+Unless you are sure that the provided utf8 string is valid, it is therefore recommended to use the `_safe` variants of functions or validate the string beforehand.
 
 Error Handling
 --------
 
 *utf8er* uses error codes for error handling and will never throw an exception itself. (That is, if you compile it with exceptions enabled, and one of your provided string or iterator classes throws exceptions in certain cases, it might still thow).
 
-All functions that validate unicode or utf8 encoded codepoints exist in two flavors, the regular, non validating form and its counterpart that is post-fixed with `_safe` and performs error checking (i.e. `decode` and `decode_safe`). Errors are transmitted using the `error_report` structure and are commonly passed in as the last argument to a function
-
+All functions that validate unicode or utf8 encoded codepoints exist in two flavors, the regular, non validating form and its counterpart that is post-fixed with `_safe` and performs error checking (i.e. `decode` and `decode_safe`). Errors are transmitted using the `error_report` structure and are commonly passed in as the last argument to a function.
 
 Alternatives
 --------
+
+[utf8.h](https://github.com/sheredom/utf8.h): if you are stuck with C.
+[utf8cpp](https://github.com/nemtrif/utfcpp): full featured c++ header only library that does a lot more than utf8er (i.e. utf16 conversion)

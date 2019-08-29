@@ -136,12 +136,12 @@ OIT decode_range_safe(IT _begin, IT _end, OIT _output_it, error_report & _out_er
 // decodes all utf8 encoded codepoints in the provided, null terminated _c_str and appends them to
 // the provided _output_it.
 template <class OIT>
-OIT decode_c_str(const char * _c_str, OIT _output_it);
+OIT decode(const char * _c_str, OIT _output_it);
 
 // decodes all utf8 encoded codepoints in the provided, null terminated _c_str and appends them to
 // the provided _output_it. Potential errors are store in _out_error.
 template <class OIT>
-OIT decode_c_str_safe(const char * _c_str, OIT _output_it, error_report & _out_error);
+OIT decode_safe(const char * _c_str, OIT _output_it, error_report & _out_error);
 
 // Decodes the current codepoint at _it into _out_codepoint and advances to the next utf8
 // codepoint and returns the corresponding iterator. _it has to be at the start of a utf8 byte
@@ -197,7 +197,7 @@ inline bool is_ascii(uint8_t _starting_byte);
 template <class IT>
 std::pair<error_report, IT> validate(IT _begin, IT _end);
 
-inline std::pair<error_report, const char*> validate_c_str(const char * _str);
+inline std::pair<error_report, const char*> validate(const char * _str);
 
 // advances the provided byte iterator _it to the next utf8 codepoint and returns the
 // corresponding iterator. _it has to be at the start of a utf8 byte sequence.
@@ -549,13 +549,13 @@ OIT decode_range_safe(IT _begin, IT _end, OIT _output_it, error_report & _out_er
 }
 
 template <class OIT>
-OIT decode_c_str(const char * _c_str, OIT _output_it)
+OIT decode(const char * _c_str, OIT _output_it)
 {
     return _me::decode_range(_c_str, _c_str + std::strlen(_c_str), _output_it);
 }
 
 template <class OIT>
-OIT decode_c_str_safe(const char * _c_str, OIT _output_it, error_report & _out_error)
+OIT decode_safe(const char * _c_str, OIT _output_it, error_report & _out_error)
 {
     return _me::decode_range_safe(_c_str, _c_str + std::strlen(_c_str), _output_it, _out_error);
 }
@@ -576,7 +576,7 @@ std::pair<error_report, IT> validate(IT _begin, IT _end)
     return std::make_pair(error_report(), IT());
 }
 
-inline std::pair<error_report, const char*> validate_c_str(const char * _str)
+inline std::pair<error_report, const char*> validate(const char * _str)
 {
     return validate(_str, _str + std::strlen(_str));
 }

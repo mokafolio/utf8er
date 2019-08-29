@@ -110,7 +110,7 @@ Why does *utf8er* not provide a an iterator class?
 Validating
 --------
 
-If you want to validate a whole utf8 string, you can use the `validate` or `validate_c_str` function. Here is an example:
+If you want to validate a whole utf8 string, you can use the `validate` function. Here is an example:
 
 ```
 std::string str = "யாமறிந்த";

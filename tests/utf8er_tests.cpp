@@ -156,11 +156,11 @@ TEST(utf8er, append_range)
 
 TEST(utf8er, next)
 {
-    std::string str("A1äÑ𝄢𩶘");
+    std::string str("ᚠᛇᚻ᛫ᛒᛦᚦ᛫");
     utf8::error_report err;
     uint32_t cp;
     uint32_t idx = 0;
-    uint32_t expected[] = { 0x0041, 0x0031, 0x00E4, 0x00D1, 0x1D122, 0x29D98 };
+    uint32_t expected[] = { 0x16A0, 0x16C7, 0x16BB, 0x16EB, 0x16D2, 0x16E6, 0x16A6, 0x16EB};
     for (auto it = str.begin(); it != str.end(); it = utf8::next(it))
     {
         auto e = expected[idx++];
@@ -251,12 +251,12 @@ TEST(utf8er, encode_range)
 
 TEST(utf8er, encode_range_safe)
 {
-    uint32_t input[] = { 0x0041, 0x0031, 0x00E4, 0x00D1, 0x1D122, 0x29D98 };
+    std::vector<utf8::uint32_t> input = { 0xCAC, 0xCBE, 0x20, 0xC87, 0xCB2, 0xCCD, 0xCB2, 0xCBF, 0x20, 0xCB8, 0xC82, 0xCAD, 0xCB5, 0xCBF, 0xCB8, 0xCC1 };
     std::string out;
     utf8::error_report err;
-    utf8::encode_range_safe(&input[0], &input[0] + 6, std::back_inserter(out), err);
-    ASSERT_EQ(utf8::distance(out.begin(), out.end()), 6);
-    ASSERT_EQ(out, "A1äÑ𝄢𩶘");
+    utf8::encode_range_safe(input.begin(), input.end(), std::back_inserter(out), err);
+    ASSERT_EQ((std::size_t)utf8::distance(out.begin(), out.end()), input.size());
+    ASSERT_EQ(out, "ಬಾ ಇಲ್ಲಿ ಸಂಭವಿಸು");
     ASSERT_FALSE(err);
 
     uint32_t broken_input[] = { 0x0041,  0x0031, 0xD800 /*bad codepoint */, 0x00E4, 0x00D1,

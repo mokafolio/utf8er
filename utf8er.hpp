@@ -91,10 +91,10 @@ typename output_iterator_picker<STR>::output_iter append_range_safe(IT _begin,
 // based on the starting byte of a utf8 byte sequence, returns the number of bytes that it uses.
 inline size_t byte_count(uint8_t _starting_byte);
 
-// returns the number of unicode codepoints store in between the utf8 encoded byte iterator
-// range _begin to _end.
+// returns the number of unicode codepoint hops in between the utf8 encoded byte iterator
+// range _begin to _end. Returns a positive number if _begin <= _end and a negative number otherwise.
 template <class IT>
-size_t count(IT _begin, IT _end);
+typename std::iterator_traits<IT>::difference_type distance(IT _begin, IT _end);
 
 // returns the number of unicode codepoints stored in the provided utf8 encoded, null terminated
 // c string.
@@ -628,21 +628,35 @@ IT decode_and_previous_safe(IT _it, uint32_t & _out_codepoint, error_report & _o
         return _it;
 }
 
-template <class IT>
-size_t count(IT _begin, IT _end)
+template <class IT> 
+typename std::iterator_traits<IT>::difference_type distance(IT _begin, IT _end)
 {
-    size_t ret = 0;
-    while (_begin != _end)
+    if(_begin == _end)
+        return 0;
+
+    typename std::iterator_traits<IT>::difference_type ret = 0;
+    if(_begin < _end)
     {
-        _begin = _me::next(_begin);
-        ++ret;
+        while(_begin != _end)
+        {
+            ++ret;
+            _begin = _me::next(_begin);
+        }
+    }
+    else
+    {
+        while(_begin != _end)
+        {
+            --ret;
+            _begin = _me::previous(_begin);
+        }
     }
     return ret;
 }
 
 inline size_t count(const char * _cstr)
 {
-    return _me::count(_cstr, _cstr + std::strlen(_cstr));
+    return static_cast<size_t>(_me::distance(_cstr, _cstr + std::strlen(_cstr)));
 }
 
 template <class IT>

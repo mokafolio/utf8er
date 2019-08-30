@@ -19,10 +19,11 @@ TEST(utf8er, validate)
     ASSERT_FALSE(utf8::validate(str2, str2 + std::strlen(str2)).first);
 }
 
-TEST(utf8er, count)
+TEST(utf8er, distance)
 {
-    ASSERT_EQ(utf8::count(str, str + std::strlen(str)), (uint32_t)11);
-    ASSERT_EQ(utf8::count(str2, str2 + std::strlen(str2)), (uint32_t)11);
+    ASSERT_EQ(utf8::distance(str, str + std::strlen(str)), 11);
+    ASSERT_EQ(utf8::distance(str2, str2 + std::strlen(str2)), 11);
+    ASSERT_EQ(utf8::distance(str2 + std::strlen(str2), str2), -11);
 }
 
 TEST(utf8er, is_ascii)
@@ -244,7 +245,7 @@ TEST(utf8er, encode_range)
     uint32_t input[] = { 0x0041, 0x0031, 0x00E4, 0x00D1, 0x1D122, 0x29D98 };
     std::string out;
     utf8::encode_range(&input[0], &input[0] + 6, std::back_inserter(out));
-    ASSERT_EQ(utf8::count(out.begin(), out.end()), (std::size_t)6);
+    ASSERT_EQ(utf8::distance(out.begin(), out.end()), 6);
     ASSERT_EQ(out, "A1äÑ𝄢𩶘");
 }
 
@@ -254,7 +255,7 @@ TEST(utf8er, encode_range_safe)
     std::string out;
     utf8::error_report err;
     utf8::encode_range_safe(&input[0], &input[0] + 6, std::back_inserter(out), err);
-    ASSERT_EQ(utf8::count(out.begin(), out.end()), (std::size_t)6);
+    ASSERT_EQ(utf8::distance(out.begin(), out.end()), 6);
     ASSERT_EQ(out, "A1äÑ𝄢𩶘");
     ASSERT_FALSE(err);
 
@@ -263,7 +264,7 @@ TEST(utf8er, encode_range_safe)
 
     out.clear();
     utf8::encode_range_safe(&broken_input[0], &broken_input[0] + 7, std::back_inserter(out), err);
-    ASSERT_EQ(utf8::count(out.begin(), out.end()), (std::size_t)2);
+    ASSERT_EQ(utf8::distance(out.begin(), out.end()), 2);
     ASSERT_EQ(out, "A1");
     ASSERT_TRUE(err);
     ASSERT_EQ(err, utf8::error_code::bad_codepoint);

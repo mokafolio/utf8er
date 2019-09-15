@@ -89,7 +89,7 @@ typename output_iterator_picker<STR>::output_iter append_range_safe(IT _begin,
                                                                     error_report & _out_error);
 
 // based on the starting byte of a utf8 byte sequence, returns the number of bytes that it uses.
-inline size_t byte_count(uint8_t _starting_byte);
+inline uint8_t byte_count(uint8_t _starting_byte);
 
 // returns the number of unicode codepoint hops in between the utf8 encoded byte iterator
 // range _begin to _end. Returns a positive number if _begin <= _end and a negative number otherwise.
@@ -136,12 +136,12 @@ OIT decode_range_safe(IT _begin, IT _end, OIT _output_it, error_report & _out_er
 // decodes all utf8 encoded codepoints in the provided, null terminated _c_str and appends them to
 // the provided _output_it.
 template <class OIT>
-OIT decode(const char * _c_str, OIT _output_it);
+OIT decode_c_str(const char * _c_str, OIT _output_it);
 
 // decodes all utf8 encoded codepoints in the provided, null terminated _c_str and appends them to
 // the provided _output_it. Potential errors are store in _out_error.
 template <class OIT>
-OIT decode_safe(const char * _c_str, OIT _output_it, error_report & _out_error);
+OIT decode_c_str_safe(const char * _c_str, OIT _output_it, error_report & _out_error);
 
 // Decodes the current codepoint at _it into _out_codepoint and advances to the next utf8
 // codepoint and returns the corresponding iterator. _it has to be at the start of a utf8 byte
@@ -287,7 +287,7 @@ inline bool is_ascii(uint8_t _starting_byte)
     return (_starting_byte & 0x80) == 0;
 }
 
-inline size_t byte_count(uint8_t _starting_byte)
+inline uint8_t byte_count(uint8_t _starting_byte)
 {
     if (is_ascii(_starting_byte))
         return 1;
@@ -425,7 +425,7 @@ template <class IT>
 uint32_t decode(IT _begin, uint8_t * _out_byte_count)
 {
     uint8_t a = *_begin;
-    size_t bc = byte_count(a);
+    uint8_t bc = byte_count(a);
     if (_out_byte_count)
         *_out_byte_count = bc;
 
@@ -549,13 +549,13 @@ OIT decode_range_safe(IT _begin, IT _end, OIT _output_it, error_report & _out_er
 }
 
 template <class OIT>
-OIT decode(const char * _c_str, OIT _output_it)
+OIT decode_c_str(const char * _c_str, OIT _output_it)
 {
     return _me::decode_range(_c_str, _c_str + std::strlen(_c_str), _output_it);
 }
 
 template <class OIT>
-OIT decode_safe(const char * _c_str, OIT _output_it, error_report & _out_error)
+OIT decode_c_str_safe(const char * _c_str, OIT _output_it, error_report & _out_error)
 {
     return _me::decode_range_safe(_c_str, _c_str + std::strlen(_c_str), _output_it, _out_error);
 }

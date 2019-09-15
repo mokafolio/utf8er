@@ -675,7 +675,7 @@ template <class IT, class OIT>
 OIT encode_range(IT _begin, IT _end, OIT _output_it)
 {
     while (_begin != _end)
-        *(_output_it++) = _me::encode(*(_begin++), _output_it);
+        _output_it = _me::encode(*(_begin++), _output_it);
     return _output_it;
 }
 

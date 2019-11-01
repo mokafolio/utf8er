@@ -1,7 +1,5 @@
-project('utf8er_tests', 'cpp', default_options : ['cpp_std=c++11'])
-
 tests = executable('utf8er_tests', 'utf8er_tests.cpp', 
-    include_directories : '../',
+    include_directories : incDirs,
     cpp_args : ['-fsanitize=address', '-Wall'],
     link_args : '-fsanitize=address')
 

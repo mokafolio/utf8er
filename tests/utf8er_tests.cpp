@@ -1,5 +1,4 @@
-#include "../utf8er.hpp"
-
+#include <utf8er/utf8er.hpp>
 #define JC_TEST_IMPLEMENTATION
 #include "jc_test.h"
 
